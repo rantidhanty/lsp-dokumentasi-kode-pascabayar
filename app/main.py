@@ -14,8 +14,8 @@ from app.billing import get_customer_bills
 def main() -> None:
     cfg = DBConfig(
         host="localhost",
-        user="root",
-        password="",
+        user="app_admin",
+        password="Admin#12345",
         database="lsp_listrik",
         port=3306,
     )
