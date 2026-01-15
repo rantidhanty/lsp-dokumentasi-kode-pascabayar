@@ -1,4 +1,4 @@
-# LSP Pembayaran Listrik Pascabayar
+﻿# LSP Pembayaran Listrik Pascabayar
 Dokumentasi Kode Program
 
 ## Deskripsi
@@ -57,34 +57,16 @@ Generate Dokumentasi
 pdoc -o docs app
 ```
 
+Cara membuka dokumentasi (HTML)
+- Windows (PowerShell):
+  ```powershell
+  start "" ".\docs\index.html"
+  ```
+- Atau langsung buka file `docs/index.html` lewat File Explorer.
+
 Catatan
 
 Proyek ini dibuat untuk kebutuhan uji kompetensi dan fokus pada
 pendokumentasian kode program sesuai standar LSP.
 
 ---
-
-# 3 Cara buat repo GitHub (step singkat)
-
-1. Buka **GitHub  New Repository**
-2. Isi:
-   - **Repository name**:
-      `lsp-pembayaran-listrik-pascabayar`
-   - Description:
-     `Uji Kompetensi LSP  Dokumentasi Kode Program (Python & MySQL)`
-   - Public
-   - **Jangan centang** README (karena sudah ada)
-
-3. Create repository
-
----
-
-# 4 Push project ke GitHub (dari folder proyek)
-```bash
-git init
-git add .
-git commit -m "Initial commit - LSP Pembayaran Listrik Pascabayar"
-git branch -M main
-git remote add origin https://github.com/USERNAME/lsp-pembayaran-listrik-pascabayar.git
-git push -u origin main
-```
