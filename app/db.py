@@ -6,12 +6,17 @@ untuk aplikasi pembayaran listrik pascabayar.
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
+
 import mysql.connector
 from mysql.connector import MySQLConnection
 
 
+# =====================
+# DATA CLASS KONFIGURASI
+# =====================
 @dataclass
 class DBConfig:
     """Konfigurasi koneksi database MySQL."""
@@ -23,10 +28,16 @@ class DBConfig:
     port: int = 3306
 
 
+# =====================
+# CUSTOM EXCEPTION
+# =====================
 class DatabaseError(Exception):
     """Error umum untuk masalah database (koneksi/query)."""
 
 
+# =====================
+# FUNGSI KONEKSI
+# =====================
 def get_connection(cfg: DBConfig) -> MySQLConnection:
     """
     Membuat koneksi ke MySQL.
@@ -52,6 +63,9 @@ def get_connection(cfg: DBConfig) -> MySQLConnection:
         raise DatabaseError(f"Gagal koneksi database: {exc}") from exc
 
 
+# =====================
+# QUERY SELECT
+# =====================
 def fetch_all(
     conn: MySQLConnection, query: str, params: Optional[Tuple[Any, ...]] = None
 ) -> List[Dict[str, Any]]:
@@ -69,14 +83,19 @@ def fetch_all(
     Raises:
         DatabaseError: Jika query gagal.
     """
+    cur = conn.cursor(dictionary=True)
     try:
-        cur = conn.cursor(dictionary=True)
         cur.execute(query, params or ())
         return cur.fetchall()
     except Exception as exc:
         raise DatabaseError(f"Query gagal: {exc}") from exc
+    finally:
+        cur.close()
 
 
+# =====================
+# QUERY NON-SELECT
+# =====================
 def execute(
     conn: MySQLConnection, query: str, params: Optional[Tuple[Any, ...]] = None
 ) -> int:
@@ -94,11 +113,13 @@ def execute(
     Raises:
         DatabaseError: Jika eksekusi gagal.
     """
+    cur = conn.cursor()
     try:
-        cur = conn.cursor()
         cur.execute(query, params or ())
         conn.commit()
         return int(cur.lastrowid or 0)
     except Exception as exc:
         conn.rollback()
         raise DatabaseError(f"Eksekusi gagal: {exc}") from exc
+    finally:
+        cur.close()
