@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Tagihan Pelanggan</h2>
+      <p class="muted">Pantau status tagihan dan pembayaran.</p>
+    </div>
+    <div class="hero-actions">
+      <a class="btn primary" href="{{ url_for('admin_bill_new') }}">Tambah Tagihan</a>
+      <a class="btn ghost" href="{{ url_for('admin_bills') }}">Semua</a>
+      <a class="btn ghost" href="{{ url_for('admin_bills', status='unpaid') }}">Belum Bayar</a>
+      <a class="btn ghost" href="{{ url_for('admin_bills', status='paid') }}">Sudah Bayar</a>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Pelanggan</th>
+          <th>Periode</th>
+          <th>Jumlah Meter</th>
+          <th>Total Bayar</th>
+          <th>Status</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for bill in bills %}
+        <tr>
+          <td>{{ bill.nama_pelanggan }}<br><span class="muted">{{ bill.nomor_kwh }}</span></td>
+          <td>{{ bill.bulan }}/{{ bill.tahun }}</td>
+          <td>{{ bill.jumlah_meter }}</td>
+          <td>{{ bill.total_bayar | rupiah }}</td>
+          <td><span class="badge {{ 'success' if bill.status == 'SUDAH BAYAR' else 'warning' }}">{{ bill.status }}</span></td>
+          <td>
+            {% if bill.status != 'SUDAH BAYAR' %}
+            <form method="post" action="{{ url_for('admin_bill_mark_paid', id_tagihan=bill.id_tagihan) }}" class="inline-form">
+              <button class="btn ghost" type="submit">Tandai Lunas</button>
+            </form>
+            {% else %}
+              <span class="muted">-</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6" class="muted">Belum ada tagihan.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

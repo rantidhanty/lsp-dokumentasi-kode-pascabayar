@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<section class="auth-grid">
+  <div class="auth-card">
+    <h1>Masuk ke Portal</h1>
+    <p class="muted">Kelola penggunaan dan pembayaran listrik pascabayar dalam satu dashboard.</p>
+    <form method="post" class="form">
+      <label class="field">
+        <span>Username</span>
+        <input type="text" name="username" placeholder="username" required>
+      </label>
+      <label class="field">
+        <span>Password</span>
+        <input type="password" name="password" placeholder="password" required>
+      </label>
+      <div class="role-toggle">
+        <label>
+          <input type="radio" name="role" value="pelanggan" checked>
+          Pelanggan
+        </label>
+        <label>
+          <input type="radio" name="role" value="admin">
+          Admin
+        </label>
+      </div>
+      <button class="btn primary" type="submit">Login</button>
+    </form>
+  </div>
+  <div class="auth-panel">
+    <div class="panel-card">
+      <h2>Alur Cepat</h2>
+      <ul>
+        <li>Login sebagai admin untuk mengelola penggunaan dan tagihan.</li>
+        <li>Login sebagai pelanggan untuk melihat dan membayar tagihan.</li>
+        <li>Integrasi Midtrans siap untuk mode sandbox.</li>
+      </ul>
+    </div>
+    <div class="panel-card accent">
+      <h2>Tip</h2>
+      <p>Gunakan data akun uji yang sudah ada di database untuk demo awal.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

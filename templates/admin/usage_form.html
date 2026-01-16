@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<section class="panel form-panel">
+  <div class="panel-header">
+    <div>
+      <h2>{{ 'Edit' if usage else 'Tambah' }} Penggunaan</h2>
+      <p class="muted">Lengkapi data penggunaan listrik pelanggan.</p>
+    </div>
+    <a class="btn ghost" href="{{ url_for('admin_usages') }}">Kembali</a>
+  </div>
+  <form method="post" class="form-grid">
+    <label class="field">
+      <span>Pelanggan</span>
+      <select name="id_pelanggan" required>
+        {% for customer in customers %}
+          <option value="{{ customer.id_pelanggan }}" {% if usage and customer.id_pelanggan == usage.id_pelanggan %}selected{% endif %}>
+            {{ customer.nama_pelanggan }} ({{ customer.username }})
+          </option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="field">
+      <span>Bulan</span>
+      <input type="number" name="bulan" min="1" max="12" value="{{ usage.bulan if usage else '' }}" required>
+    </label>
+    <label class="field">
+      <span>Tahun</span>
+      <input type="number" name="tahun" min="2000" value="{{ usage.tahun if usage else '' }}" required>
+    </label>
+    <label class="field">
+      <span>Meter Awal</span>
+      <input type="number" name="meter_awal" min="0" value="{{ usage.meter_awal if usage else '' }}" required>
+    </label>
+    <label class="field">
+      <span>Meter Akhir</span>
+      <input type="number" name="meter_akhir" min="0" value="{{ usage.meter_akhir if usage else '' }}" required>
+    </label>
+    <div class="form-actions">
+      <button class="btn primary" type="submit">Simpan</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<section class="hero">
+  <div>
+    <p class="eyebrow">Selamat datang, {{ session.get('name') }}</p>
+    <h1>Dashboard Pembayaran Listrik Pascabayar</h1>
+    <p class="muted">Pantau penggunaan, tagihan, dan pembayaran secara real-time.</p>
+  </div>
+  <div class="hero-actions">
+    {% if role == 'admin' %}
+      <a class="btn primary" href="{{ url_for('admin_usages') }}">Kelola Penggunaan</a>
+    <a class="btn ghost" href="{{ url_for('admin_bills', status='unpaid') }}">Lihat Tagihan</a>
+    {% else %}
+      <a class="btn primary" href="{{ url_for('customer_bills') }}">Lihat Tagihan</a>
+    {% endif %}
+  </div>
+</section>
+
+{% if role == 'admin' %}
+  <section class="stats-grid">
+    <a class="stat-card stat-link" href="{{ url_for('admin_customers') }}">
+      <span>Total Pelanggan</span>
+      <strong>{{ stats.total_pelanggan }}</strong>
+      <span class="stat-meta">Lihat semua pelanggan</span>
+    </a>
+    <a class="stat-card stat-link" href="{{ url_for('admin_usages') }}">
+      <span>Total Penggunaan</span>
+      <strong>{{ stats.total_penggunaan }}</strong>
+      <span class="stat-meta">Lihat detail penggunaan</span>
+    </a>
+    <a class="stat-card stat-link" href="{{ url_for('admin_bills', status='unpaid') }}">
+      <span>Tagihan Belum Lunas</span>
+      <strong>{{ stats.tagihan_belum }}</strong>
+      <span class="stat-meta">Pantau tagihan belum bayar</span>
+    </a>
+    <a class="stat-card stat-link" href="{{ url_for('admin_bills', status='paid') }}">
+      <span>Tagihan Lunas</span>
+      <strong>{{ stats.tagihan_lunas }}</strong>
+      <span class="stat-meta">Lihat tagihan sudah bayar</span>
+    </a>
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <h2>Tagihan Terbaru</h2>
+      <a class="link" href="{{ url_for('admin_bills') }}">Lihat semua</a>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nama</th>
+            <th>Periode</th>
+            <th>Jumlah Meter</th>
+            <th>Total Bayar</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for bill in bills %}
+          <tr>
+            <td>{{ bill.nama_pelanggan }}</td>
+            <td>{{ bill.bulan }}/{{ bill.tahun }}</td>
+            <td>{{ bill.jumlah_meter }}</td>
+            <td>{{ bill.total_bayar | rupiah }}</td>
+            <td><span class="badge {{ 'success' if bill.status == 'SUDAH BAYAR' else 'warning' }}">{{ bill.status }}</span></td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="5" class="muted">Belum ada data tagihan.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% else %}
+  <section class="panel">
+    <div class="panel-header">
+      <h2>Tagihan Saya</h2>
+      <a class="link" href="{{ url_for('customer_bills') }}">Lihat detail</a>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Periode</th>
+            <th>Jumlah Meter</th>
+            <th>Total Bayar</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for bill in bills %}
+          <tr>
+            <td>{{ bill.bulan }}/{{ bill.tahun }}</td>
+            <td>{{ bill.jumlah_meter }}</td>
+            <td>{{ bill.total_bayar | rupiah }}</td>
+            <td><span class="badge {{ 'success' if bill.status == 'SUDAH BAYAR' else 'warning' }}">{{ bill.status }}</span></td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="4" class="muted">Belum ada tagihan.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endif %}
+{% endblock %}

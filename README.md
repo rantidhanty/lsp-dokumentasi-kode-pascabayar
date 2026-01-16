@@ -70,3 +70,33 @@ Proyek ini dibuat untuk kebutuhan uji kompetensi dan fokus pada
 pendokumentasian kode program sesuai standar LSP.
 
 ---
+
+## Web App (Flask)
+Menjalankan aplikasi web dengan fitur login, CRUD, tagihan, dan pembayaran (dummy/Midtrans).
+
+### Menjalankan
+```bash
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python run.py
+```
+
+Akses aplikasi:
+- http://127.0.0.1:5000
+
+### Konfigurasi .env (contoh)
+```
+SECRET_KEY=dev-secret
+DB_HOST=localhost
+DB_USER=app_admin
+DB_PASSWORD=Admin#12345
+DB_NAME=lsp_listrik
+DB_PORT=3306
+
+MIDTRANS_SERVER_KEY=SB-Mid-server-xxxx
+MIDTRANS_CLIENT_KEY=SB-Mid-client-xxxx
+MIDTRANS_IS_PRODUCTION=false
+```
+
+Jika key Midtrans belum diisi, aplikasi otomatis berjalan pada mode dummy (simulasi pembayaran).

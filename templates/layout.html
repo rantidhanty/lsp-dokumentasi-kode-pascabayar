@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LSP Pascabayar</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="page">
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <div>
+        <div class="brand-title">LSP Pascabayar</div>
+        <div class="brand-subtitle">Pembayaran listrik profesional</div>
+      </div>
+    </div>
+    <nav class="nav">
+      {% if session.get('user_id') %}
+        <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+        {% if session.get('role') == 'admin' %}
+          <a class="nav-link" href="{{ url_for('admin_customers') }}">Pelanggan</a>
+          <a class="nav-link" href="{{ url_for('admin_usages') }}">Penggunaan</a>
+          <a class="nav-link" href="{{ url_for('admin_bills') }}">Tagihan</a>
+        {% else %}
+          <a class="nav-link" href="{{ url_for('customer_bills') }}">Tagihan Saya</a>
+        {% endif %}
+        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+      {% else %}
+        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  <main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-stack">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

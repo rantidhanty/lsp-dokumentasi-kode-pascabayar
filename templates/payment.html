@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<section class="panel pay-panel">
+  <div class="panel-header">
+    <div>
+      <h2>Konfirmasi Pembayaran</h2>
+      <p class="muted">Pastikan detail tagihan sebelum melanjutkan.</p>
+    </div>
+    <a class="btn ghost" href="{{ url_for('customer_bills') }}">Kembali</a>
+  </div>
+
+  <div class="pay-grid">
+    <div class="card">
+      <h3>Ringkasan Tagihan</h3>
+      <div class="summary-row"><span>Nama</span><strong>{{ bill.nama_pelanggan }}</strong></div>
+      <div class="summary-row"><span>Periode</span><strong>{{ bill.bulan }}/{{ bill.tahun }}</strong></div>
+      <div class="summary-row"><span>Jumlah Meter</span><strong>{{ bill.jumlah_meter }}</strong></div>
+      <div class="summary-row"><span>Total Bayar</span><strong>{{ amount | rupiah }}</strong></div>
+    </div>
+
+    <div class="card">
+      <h3>Metode Pembayaran</h3>
+      {% if error_message %}
+        <div class="flash flash-error">{{ error_message }}</div>
+      {% endif %}
+      {% if midtrans_enabled and snap_token %}
+        <p class="muted">Pembayaran diproses melalui Midtrans Snap.</p>
+        <button id="pay-button" class="btn primary">Bayar Sekarang</button>
+      {% else %}
+        <p class="muted">Mode dummy aktif. Klik tombol di bawah untuk simulasi pembayaran.</p>
+        <form method="post" action="{{ url_for('pay_bill_simulate', id_tagihan=bill.id_tagihan) }}">
+          <button class="btn primary" type="submit">Simulasi Bayar</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% if midtrans_enabled and snap_token %}
+  <script src="{{ snap_url }}" data-client-key="{{ client_key }}"></script>
+  <script>
+    const payButton = document.getElementById('pay-button');
+    if (payButton && window.snap) {
+      payButton.addEventListener('click', function () {
+        window.snap.pay('{{ snap_token }}');
+      });
+    }
+  </script>
+{% endif %}
+{% endblock %}

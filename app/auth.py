@@ -56,8 +56,9 @@ def login_pelanggan(
         """
         SELECT id_pelanggan, username, nama_pelanggan, nomor_kwh, id_tarif
         FROM pelanggan
-        WHERE username = %s AND password = SHA2(%s, 256)
+        WHERE username = %s
+          AND (password = SHA2(%s, 256) OR password = %s)
         """,
-        (username, password_plain),
+        (username, password_plain, password_plain),
     )
     return rows[0] if rows else None

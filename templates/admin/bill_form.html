@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<section class="panel form-panel">
+  <div class="panel-header">
+    <div>
+      <h2>Tambah Tagihan</h2>
+      <p class="muted">Tagihan dibuat dari data penggunaan baru.</p>
+    </div>
+    <a class="btn ghost" href="{{ url_for('admin_bills') }}">Kembali</a>
+  </div>
+  <form method="post" class="form-grid">
+    <label class="field">
+      <span>Pelanggan</span>
+      <select name="id_pelanggan" required>
+        {% for customer in customers %}
+          <option value="{{ customer.id_pelanggan }}">
+            {{ customer.nama_pelanggan }} ({{ customer.username }})
+          </option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="field">
+      <span>Bulan</span>
+      <input type="number" name="bulan" min="1" max="12" required>
+    </label>
+    <label class="field">
+      <span>Tahun</span>
+      <input type="number" name="tahun" min="2000" required>
+    </label>
+    <label class="field">
+      <span>Meter Awal</span>
+      <input type="number" name="meter_awal" min="0" required>
+    </label>
+    <label class="field">
+      <span>Meter Akhir</span>
+      <input type="number" name="meter_akhir" min="0" required>
+    </label>
+    <div class="form-actions">
+      <button class="btn primary" type="submit">Buat Tagihan</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

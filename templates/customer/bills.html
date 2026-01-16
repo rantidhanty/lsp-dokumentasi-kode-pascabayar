@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Tagihan Saya</h2>
+      <p class="muted">Lihat status tagihan dan lanjutkan pembayaran.</p>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Periode</th>
+          <th>Jumlah Meter</th>
+          <th>Total Bayar</th>
+          <th>Status</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for bill in bills %}
+        <tr>
+          <td>{{ bill.bulan }}/{{ bill.tahun }}</td>
+          <td>{{ bill.jumlah_meter }}</td>
+          <td>{{ bill.total_bayar | rupiah }}</td>
+          <td><span class="badge {{ 'success' if bill.status == 'SUDAH BAYAR' else 'warning' }}">{{ bill.status }}</span></td>
+          <td>
+            {% if bill.status != 'SUDAH BAYAR' %}
+              <a class="btn primary" href="{{ url_for('pay_bill', id_tagihan=bill.id_tagihan) }}">Bayar</a>
+            {% else %}
+              <span class="muted">-</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5" class="muted">Belum ada tagihan.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

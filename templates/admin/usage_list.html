@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Data Penggunaan</h2>
+      <p class="muted">Kelola data penggunaan listrik pelanggan.</p>
+    </div>
+    <a class="btn primary" href="{{ url_for('admin_usage_new') }}">Tambah Penggunaan</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Pelanggan</th>
+          <th>Periode</th>
+          <th>Meter Awal</th>
+          <th>Meter Akhir</th>
+          <th>Kwh</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for usage in usages %}
+        <tr>
+          <td>{{ usage.nama_pelanggan }}<br><span class="muted">{{ usage.username }}</span></td>
+          <td>{{ usage.bulan }}/{{ usage.tahun }}</td>
+          <td>{{ usage.meter_awal }}</td>
+          <td>{{ usage.meter_akhir }}</td>
+          <td>{{ usage.kwh }}</td>
+          <td>
+            <a class="btn ghost" href="{{ url_for('admin_usage_edit', id_penggunaan=usage.id_penggunaan) }}">Edit</a>
+            <form method="post" action="{{ url_for('admin_usage_delete', id_penggunaan=usage.id_penggunaan) }}" class="inline-form" onsubmit="return confirm('Hapus data penggunaan?');">
+              <button class="btn danger" type="submit">Hapus</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6" class="muted">Belum ada data penggunaan.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
