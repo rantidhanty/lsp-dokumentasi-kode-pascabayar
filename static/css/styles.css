@@ -63,12 +63,13 @@ body.page {
   gap: 14px;
 }
 
-.brand-dot {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 6px rgba(15, 91, 74, 0.15);
+.brand-logo {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 10px 20px rgba(15, 91, 74, 0.15);
 }
 
 .brand-title {
