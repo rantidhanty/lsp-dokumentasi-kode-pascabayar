@@ -102,6 +102,136 @@ body.page {
   background: rgba(255, 255, 255, 0.9);
 }
 
+.nav-dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.nav-dropdown::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 10px;
+}
+
+.nav-toggle {
+  cursor: default;
+}
+
+.nav-caret {
+  font-size: 12px;
+  margin-left: 6px;
+}
+
+.nav-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 180px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 10;
+}
+
+.nav-menu-link {
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 600;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+.nav-menu-link:hover {
+  background: rgba(15, 91, 74, 0.08);
+}
+
+.nav-dropdown:hover .nav-menu,
+.nav-dropdown:focus-within .nav-menu {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.nav-bell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+}
+
+.nav-bell svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.notif-badge {
+  position: absolute;
+  top: -6px;
+  right: -4px;
+  background: #f6d66f;
+  color: #5c4a0f;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(92, 74, 15, 0.2);
+}
+
+.nav-menu-notif {
+  min-width: 280px;
+  gap: 8px;
+  right: 0;
+  left: auto;
+}
+
+.nav-menu-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 6px 10px 2px;
+}
+
+.notif-item {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+}
+
+.notif-title {
+  font-weight: 600;
+}
+
+.notif-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.nav-menu-empty {
+  padding: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.notif-actions {
+  display: flex;
+  gap: 8px;
+  padding: 8px 6px 4px;
+}
+
 .container {
   position: relative;
   z-index: 2;
@@ -161,9 +291,22 @@ body.page {
   color: var(--text);
 }
 
+.btn.warning {
+  background: #f6d66f;
+  color: #5c4a0f;
+  border: 1px solid rgba(92, 74, 15, 0.2);
+  box-shadow: 0 10px 20px rgba(246, 214, 111, 0.35);
+}
+
 .btn.danger {
   background: var(--danger);
   color: #fff;
+}
+
+.btn.neutral {
+  background: #ede9e3;
+  color: #4a4036;
+  border: 1px solid rgba(74, 64, 54, 0.18);
 }
 
 .panel {
@@ -180,6 +323,29 @@ body.page {
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 18px;
+}
+
+.pagination {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.filter-row {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-row select {
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-size: 14px;
 }
 
 .stats-grid {
@@ -244,13 +410,13 @@ body.page {
 }
 
 .badge.success {
-  background: rgba(30, 125, 102, 0.15);
-  color: var(--accent);
+  background: var(--accent);
+  color: #fff; /* Teks putih untuk kontras lebih baik */
 }
 
 .badge.warning {
-  background: rgba(194, 57, 43, 0.12);
-  color: var(--danger);
+  background: var(--danger);
+  color: #fff; /* Teks putih untuk kontras lebih baik */
 }
 
 .form {
@@ -334,6 +500,14 @@ body.page {
   color: var(--danger);
 }
 
+tr.row-paid {
+  background-color: rgba(15, 91, 74, 0.15); /* A slightly more visible accent green */
+}
+
+tr.row-unpaid {
+  background-color: rgba(194, 57, 43, 0.15); /* A slightly more visible danger red */
+}
+
 .auth-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -383,6 +557,58 @@ body.page {
   text-decoration: none;
   color: var(--accent);
   font-weight: 600;
+}
+
+/* Modal styles */
+.modal {
+  display: none; /* Hidden by default */
+}
+
+.modal-content {
+  background-color: var(--card);
+  margin: auto;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  position: relative; /* Ensure z-index works if needed, or for transform */
+  top: 50%; /* Start at 50% from the top */
+  transform: translateY(-50%); /* Move up by half its own height */
+  width: 90%;
+  max-width: 500px;
+  text-align: center;
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  color: var(--text);
+  font-family: 'Newsreader', serif;
+}
+
+.modal-content p {
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+.close-button {
+  color: var(--muted);
+  position: absolute;
+  top: 15px;
+  right: 25px;
+  font-size: 32px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+  color: var(--danger);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Ensure buttons within modal are styled correctly */
+.modal-content .btn {
+  margin: 5px;
 }
 
 @media (max-width: 720px) {

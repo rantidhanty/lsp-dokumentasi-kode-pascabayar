@@ -12,7 +12,7 @@
   <form method="post" class="form-grid">
     <label class="field">
       <span>Pelanggan</span>
-      <select name="id_pelanggan" required>
+      <select name="id_pelanggan" id="customerSelect" required>
         {% for customer in customers %}
           <option value="{{ customer.id_pelanggan }}" {% if usage and customer.id_pelanggan == usage.id_pelanggan %}selected{% endif %}>
             {{ customer.nama_pelanggan }} ({{ customer.username }})
@@ -22,15 +22,15 @@
     </label>
     <label class="field">
       <span>Bulan</span>
-      <input type="number" name="bulan" min="1" max="12" value="{{ usage.bulan if usage else '' }}" required>
+      <input type="number" name="bulan" id="bulanInput" min="1" max="12" value="{{ usage.bulan if usage else '' }}" required>
     </label>
     <label class="field">
       <span>Tahun</span>
-      <input type="number" name="tahun" min="2000" value="{{ usage.tahun if usage else '' }}" required>
+      <input type="number" name="tahun" id="tahunInput" min="2000" value="{{ usage.tahun if usage else '' }}" required>
     </label>
     <label class="field">
       <span>Meter Awal</span>
-      <input type="number" name="meter_awal" min="0" value="{{ usage.meter_awal if usage else '' }}" required>
+      <input type="number" name="meter_awal" id="meterAwalInput" min="0" value="{{ usage.meter_awal if usage else '' }}" required>
     </label>
     <label class="field">
       <span>Meter Akhir</span>
@@ -41,4 +41,59 @@
     </div>
   </form>
 </section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const customerSelect = document.getElementById('customerSelect');
+    const bulanInput = document.getElementById('bulanInput');
+    const tahunInput = document.getElementById('tahunInput');
+    const meterAwalInput = document.getElementById('meterAwalInput');
+    const isNewUsageForm = !({{ 'true' if usage else 'false' }}); // Check if it's a new form
+
+    async function fetchLastUsage(customerId) {
+      try {
+        const response = await fetch(`/admin/api/get_last_usage/${customerId}`);
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Error fetching last usage:', error);
+        return { bulan: null, tahun: null, meter_awal: null };
+      }
+    }
+
+    // Function to update form fields
+    function updateFormFields(data) {
+      bulanInput.value = data.bulan !== null ? data.bulan : '';
+      tahunInput.value = data.tahun !== null ? data.tahun : '';
+      meterAwalInput.value = data.meter_awal !== null ? data.meter_awal : '';
+    }
+
+    // Only pre-fill if it's a new usage form
+    if (isNewUsageForm) {
+      customerSelect.addEventListener('change', async function() {
+        const selectedCustomerId = this.value;
+        if (selectedCustomerId) {
+          const data = await fetchLastUsage(selectedCustomerId);
+          updateFormFields(data);
+        } else {
+          // Clear fields if no customer selected
+          bulanInput.value = '';
+          tahunInput.value = '';
+          meterAwalInput.value = '';
+        }
+      });
+
+      // Initial load: if a customer is already selected (e.g., from a previous POST request or initial rendering)
+      // and it's a new form, try to pre-fill.
+      if (customerSelect.value) {
+        fetchLastUsage(customerSelect.value).then(data => {
+            updateFormFields(data);
+        });
+      }
+    }
+  });
+</script>
 {% endblock %}

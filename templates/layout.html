@@ -22,9 +22,56 @@
       {% if session.get('user_id') %}
         <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
         {% if session.get('role') == 'admin' %}
-          <a class="nav-link" href="{{ url_for('admin_customers') }}">Pelanggan</a>
-          <a class="nav-link" href="{{ url_for('admin_usages') }}">Penggunaan</a>
-          <a class="nav-link" href="{{ url_for('admin_bills') }}">Tagihan</a>
+          <div class="nav-dropdown">
+            <span class="nav-link nav-toggle">Admin <span class="nav-caret">▾</span></span>
+            <div class="nav-menu">
+              <a class="nav-menu-link" href="{{ url_for('admin_customers') }}">Pelanggan</a>
+              <a class="nav-menu-link" href="{{ url_for('admin_usages') }}">Penggunaan</a>
+              <a class="nav-menu-link" href="{{ url_for('admin_bills') }}">Tagihan</a>
+              <a class="nav-menu-link" href="{{ url_for('admin_reports') }}">Laporan</a>
+              <a class="nav-menu-link" href="{{ url_for('admin_admins') }}">Kelola Admin</a>
+            </div>
+          </div>
+          <div class="nav-dropdown nav-notif">
+            <span class="nav-link nav-toggle nav-bell" aria-label="Notifikasi pembayaran">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 1 0-14 0v5l-2 2v1h18v-1l-2-2Z"/>
+              </svg>
+              {% if admin_notifications_count %}
+                <span
+                  class="notif-badge"
+                  id="notifBadge"
+                  data-latest-id="{{ admin_notifications[0].id_pembayaran if admin_notifications else 0 }}"
+                >
+                  {{ admin_notifications_count }}
+                </span>
+              {% endif %}
+            </span>
+            <div class="nav-menu nav-menu-notif">
+              <div class="nav-menu-title">Notifikasi Pembayaran</div>
+              {% if admin_notifications %}
+                {% for notif in admin_notifications %}
+                  <a
+                    class="nav-menu-link notif-item"
+                    data-index="{{ loop.index0 }}"
+                    href="{{ url_for('admin_customer_bill_history', customer_id=notif.id_pelanggan) }}"
+                  >
+                    <div class="notif-title">{{ notif.nama_pelanggan }} sudah membayar</div>
+                    <div class="notif-meta">
+                      Tagihan #{{ notif.id_tagihan }} ·
+                      {{ notif.tanggal_pembayaran.strftime('%d-%m-%Y') if notif.tanggal_pembayaran else '-' }}
+                    </div>
+                  </a>
+                {% endfor %}
+                <div class="notif-actions">
+                  <button class="btn ghost" type="button" id="notifMore">Lihat selengkapnya</button>
+                  <button class="btn ghost" type="button" id="notifLess">Perkecil notifikasi</button>
+                </div>
+              {% else %}
+                <div class="nav-menu-empty">Belum ada notifikasi.</div>
+              {% endif %}
+            </div>
+          </div>
         {% else %}
           <a class="nav-link" href="{{ url_for('customer_bills') }}">Tagihan Saya</a>
         {% endif %}

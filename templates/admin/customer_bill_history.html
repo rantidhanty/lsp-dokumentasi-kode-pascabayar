@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Histori Tagihan Pelanggan: {{ customer.nama_pelanggan }}</h2>
+      <p class="muted">Nomor KWH: {{ customer.nomor_kwh }}</p>
+    </div>
+    <a class="btn ghost" href="{{ url_for('admin_usages') }}">Kembali ke Penggunaan</a>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID Tagihan</th>
+          <th>Periode</th>
+          <th>Jumlah Meter (KWH)</th>
+          <th>Total Bayar</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for bill in bills %}
+        <tr class="{{ 'row-paid' if bill.status == 'SUDAH BAYAR' else 'row-unpaid' }}">
+          <td>{{ bill.id_tagihan }}</td>
+          <td>{{ bill.bulan }}/{{ bill.tahun }}</td>
+          <td>{{ bill.jumlah_meter }}</td>
+          <td>Rp {{ "{:,.0f}".format(bill.total_bayar).replace(",", ".") }}</td>
+          <td>
+            <span class="badge {{ 'badge-success' if bill.status == 'SUDAH BAYAR' else 'badge-warning' }}">
+              {{ bill.status }}
+            </span>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5" class="muted">Belum ada histori tagihan untuk pelanggan ini.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

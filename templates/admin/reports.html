@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Laporan Bulanan</h2>
+      <p class="muted">Ringkasan tagihan dan pelanggan per bulan (berdasarkan data tagihan).</p>
+      <form class="filter-row" method="get">
+        <select name="year">
+          <option value="">Semua Tahun</option>
+          {% for y in years %}
+            <option value="{{ y }}" {% if year_filter == y|string %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+        <select name="month">
+          <option value="">Semua Bulan</option>
+          {% for m in range(1, 13) %}
+            <option value="{{ m }}" {% if month_filter == m|string %}selected{% endif %}>{{ m }}</option>
+          {% endfor %}
+        </select>
+        <button class="btn ghost" type="submit">Terapkan</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Tahun</th>
+          <th>Bulan</th>
+          <th>Total Pelanggan</th>
+          <th>Total Tagihan</th>
+          <th>Tagihan Lunas</th>
+          <th>Belum Bayar</th>
+          <th>Total Bayar</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in reports %}
+        <tr>
+          <td>{{ row.tahun }}</td>
+          <td>{{ row.bulan }}</td>
+          <td>{{ row.total_pelanggan }}</td>
+          <td>{{ row.total_tagihan }}</td>
+          <td>{{ row.tagihan_lunas }}</td>
+          <td>{{ row.tagihan_belum }}</td>
+          <td>Rp {{ "{:,.0f}".format(row.total_bayar).replace(",", ".") }}</td>
+          <td>
+            <a
+              class="btn neutral"
+              href="{{ url_for('admin_report_download', year=row.tahun, month=row.bulan) }}"
+            >
+              Download PDF
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" class="muted">Belum ada data laporan.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if total_pages > 1 %}
+    <div class="pagination">
+      {% if page > 1 %}
+        <a class="btn ghost" href="{{ url_for('admin_reports', page=page-1) }}">Sebelumnya</a>
+      {% endif %}
+      <span class="muted">Halaman {{ page }} dari {{ total_pages }}</span>
+      {% if page < total_pages %}
+        <a class="btn ghost" href="{{ url_for('admin_reports', page=page+1) }}">Berikutnya</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

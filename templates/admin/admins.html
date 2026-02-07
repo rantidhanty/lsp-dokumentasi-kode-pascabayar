@@ -1,0 +1,124 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Kelola Admin</h2>
+      <p class="muted">Daftar admin/petugas yang memiliki akses sistem.</p>
+    </div>
+    <button class="btn primary" type="button" id="openAdminModal">Tambah Admin</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nama</th>
+          <th>Username</th>
+          <th>Level</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for admin in admins %}
+        <tr>
+          <td>{{ admin.id_user }}</td>
+          <td>{{ admin.nama_admin }}</td>
+          <td>{{ admin.username }}</td>
+          <td>{{ admin.id_level }}</td>
+          <td>
+            <button
+              class="btn ghost"
+              type="button"
+              data-edit-admin
+              data-id="{{ admin.id_user }}"
+              data-username="{{ admin.username }}"
+              data-name="{{ admin.nama_admin }}"
+              data-level="{{ admin.id_level }}"
+            >
+              Edit
+            </button>
+            <form
+              method="post"
+              action="{{ url_for('admin_admin_delete', admin_id=admin.id_user) }}"
+              class="inline-form"
+              onsubmit="return confirm('Hapus admin ini?');"
+            >
+              <button class="btn danger" type="submit">Hapus</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5" class="muted">Belum ada data admin.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div id="adminModal" class="modal">
+  <div class="modal-content">
+    <span class="close-button" id="closeAdminModal">&times;</span>
+    <h2>Tambah Admin</h2>
+    <p class="muted">Buat akun admin baru untuk akses sistem.</p>
+    <form class="form" method="post">
+      <div class="form-grid">
+        <label class="field">
+          Username
+          <input type="text" name="username" placeholder="Username admin" required>
+        </label>
+        <label class="field">
+          Nama Admin
+          <input type="text" name="nama_admin" placeholder="Nama lengkap" required>
+        </label>
+        <label class="field">
+          Password
+          <input type="password" name="password" placeholder="Password" required>
+        </label>
+        <label class="field">
+          Level
+          <input type="number" name="id_level" min="1" step="1" value="1" required>
+        </label>
+      </div>
+      <div class="form-actions">
+        <button class="btn primary" type="submit">Tambah Admin</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="adminEditModal" class="modal">
+  <div class="modal-content">
+    <span class="close-button" id="closeAdminEditModal">&times;</span>
+    <h2>Edit Admin</h2>
+    <p class="muted">Ubah data admin. Kosongkan password jika tidak ingin mengubah.</p>
+    <form class="form" method="post" id="adminEditForm">
+      <div class="form-grid">
+        <label class="field">
+          Username
+          <input type="text" name="username" placeholder="Username admin" required>
+        </label>
+        <label class="field">
+          Nama Admin
+          <input type="text" name="nama_admin" placeholder="Nama lengkap" required>
+        </label>
+        <label class="field">
+          Password
+          <input type="password" name="password" placeholder="Kosongkan jika tidak diubah">
+        </label>
+        <label class="field">
+          Level
+          <input type="number" name="id_level" min="1" step="1" value="1" required>
+        </label>
+      </div>
+      <div class="form-actions">
+        <button class="btn primary" type="submit">Simpan Perubahan</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

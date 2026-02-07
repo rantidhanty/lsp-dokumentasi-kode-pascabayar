@@ -13,23 +13,36 @@
     <table>
       <thead>
         <tr>
+          <th>ID</th>
           <th>Nama</th>
           <th>Username</th>
           <th>Nomor KWH</th>
+          <th>Alamat</th>
           <th>Tarif</th>
+          <th>Detail</th>
         </tr>
       </thead>
       <tbody>
         {% for customer in customers %}
         <tr>
+          <td>{{ customer.id_pelanggan }}</td>
           <td>{{ customer.nama_pelanggan }}</td>
           <td>{{ customer.username }}</td>
           <td>{{ customer.nomor_kwh }}</td>
-          <td>{{ customer.id_tarif }}</td>
+          <td>{{ customer.alamat }}</td>
+          <td>
+            {{ customer.daya }} VA<br />
+            Rp {{ "{:,.0f}".format(customer.tarifperkwh).replace(",", ".") }}/kWh
+          </td>
+          <td>
+            <a class="btn warning" href="{{ url_for('admin_customer_bill_history', customer_id=customer.id_pelanggan) }}">
+              Lihat Histori
+            </a>
+          </td>
         </tr>
         {% else %}
         <tr>
-          <td colspan="4" class="muted">Belum ada data pelanggan.</td>
+          <td colspan="7" class="muted">Belum ada data pelanggan.</td>
         </tr>
         {% endfor %}
       </tbody>

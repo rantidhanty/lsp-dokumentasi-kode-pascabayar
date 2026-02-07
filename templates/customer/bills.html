@@ -30,7 +30,7 @@
             {% if bill.status != 'SUDAH BAYAR' %}
               <a class="btn primary" href="{{ url_for('pay_bill', id_tagihan=bill.id_tagihan) }}">Bayar</a>
             {% else %}
-              <span class="muted">-</span>
+              <button class="btn secondary btn-cetak-bukti" data-id_tagihan="{{ bill.id_tagihan }}">Cetak Bukti</button>
             {% endif %}
           </td>
         </tr>
@@ -43,4 +43,15 @@
     </table>
   </div>
 </section>
+
+<!-- Modal Cetak Bukti -->
+<div id="cetakBuktiModal" class="modal">
+  <div class="modal-content">
+    <span class="close-button">&times;</span>
+    <div id="billProofPreview" style="text-align: left; margin-bottom: 20px;">
+      <!-- Bill proof preview will be loaded here by JavaScript -->
+    </div>
+    <button id="downloadPdfBtn" class="btn primary">Unduh PDF</button>
+  </div>
+</div>
 {% endblock %}

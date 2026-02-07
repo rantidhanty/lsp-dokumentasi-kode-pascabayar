@@ -18,6 +18,7 @@
           <th>Meter Awal</th>
           <th>Meter Akhir</th>
           <th>Kwh</th>
+          <th>Histori Pelanggan</th>
           <th>Aksi</th>
         </tr>
       </thead>
@@ -30,6 +31,9 @@
           <td>{{ usage.meter_akhir }}</td>
           <td>{{ usage.kwh }}</td>
           <td>
+            <a class="btn info" href="{{ url_for('admin_customer_bill_history', customer_id=usage.id_pelanggan) }}">Histori</a>
+          </td>
+          <td>
             <a class="btn ghost" href="{{ url_for('admin_usage_edit', id_penggunaan=usage.id_penggunaan) }}">Edit</a>
             <form method="post" action="{{ url_for('admin_usage_delete', id_penggunaan=usage.id_penggunaan) }}" class="inline-form" onsubmit="return confirm('Hapus data penggunaan?');">
               <button class="btn danger" type="submit">Hapus</button>
@@ -38,7 +42,7 @@
         </tr>
         {% else %}
         <tr>
-          <td colspan="6" class="muted">Belum ada data penggunaan.</td>
+          <td colspan="7" class="muted">Belum ada data penggunaan.</td>
         </tr>
         {% endfor %}
       </tbody>

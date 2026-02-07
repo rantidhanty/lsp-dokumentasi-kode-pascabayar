@@ -7,9 +7,17 @@ def list_customers(conn) -> List[Dict[str, Any]]:
     return fetch_all(
         conn,
         """
-        SELECT id_pelanggan, username, nama_pelanggan, nomor_kwh, id_tarif
-        FROM pelanggan
-        ORDER BY nama_pelanggan
+        SELECT pl.id_pelanggan,
+               pl.username,
+               pl.nama_pelanggan,
+               pl.nomor_kwh,
+               pl.alamat,
+               pl.id_tarif,
+               tr.daya,
+               tr.tarifperkwh
+        FROM pelanggan pl
+        JOIN tarif tr ON tr.id_tarif = pl.id_tarif
+        ORDER BY pl.nama_pelanggan
         """,
     )
 
@@ -23,6 +31,159 @@ def list_tariffs(conn) -> List[Dict[str, Any]]:
         ORDER BY daya
         """,
     )
+
+
+def list_admins(conn) -> List[Dict[str, Any]]:
+    return fetch_all(
+        conn,
+        """
+        SELECT id_user, username, nama_admin, id_level
+        FROM user
+        ORDER BY nama_admin
+        """,
+    )
+
+
+def list_recent_payments(conn, limit: int = 5) -> List[Dict[str, Any]]:
+    return fetch_all(
+        conn,
+        """
+        SELECT p.id_pembayaran,
+               p.id_tagihan,
+               p.id_pelanggan,
+               p.tanggal_pembayaran,
+               p.total_bayar,
+               pl.nama_pelanggan
+        FROM pembayaran p
+        JOIN pelanggan pl ON pl.id_pelanggan = p.id_pelanggan
+        ORDER BY p.tanggal_pembayaran DESC, p.id_pembayaran DESC
+        LIMIT %s
+        """,
+        (limit,),
+    )
+
+
+def get_default_admin_id(conn) -> Optional[int]:
+    rows = fetch_all(
+        conn,
+        "SELECT id_user FROM user ORDER BY id_user LIMIT 1",
+    )
+    return int(rows[0]["id_user"]) if rows else None
+
+
+def has_payment_for_bill(conn, id_tagihan: int) -> bool:
+    rows = fetch_all(
+        conn,
+        "SELECT id_pembayaran FROM pembayaran WHERE id_tagihan = %s LIMIT 1",
+        (id_tagihan,),
+    )
+    return bool(rows)
+
+
+def create_payment(
+    conn,
+    id_tagihan: int,
+    id_pelanggan: int,
+    tanggal_pembayaran: str,
+    bulan_bayar: int,
+    biaya_admin: float,
+    total_bayar: float,
+    id_user: int,
+) -> int:
+    return execute(
+        conn,
+        """
+        INSERT INTO pembayaran (id_tagihan, id_pelanggan, tanggal_pembayaran, bulan_bayar, biaya_admin, total_bayar, id_user)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """,
+        (id_tagihan, id_pelanggan, tanggal_pembayaran, bulan_bayar, biaya_admin, total_bayar, id_user),
+    )
+
+
+def list_monthly_reports(conn) -> List[Dict[str, Any]]:
+    return fetch_all(
+        conn,
+        """
+        SELECT t.tahun,
+               t.bulan,
+               COUNT(*) AS total_tagihan,
+               SUM(CASE WHEN t.status = 'SUDAH BAYAR' THEN 1 ELSE 0 END) AS tagihan_lunas,
+               SUM(CASE WHEN t.status <> 'SUDAH BAYAR' THEN 1 ELSE 0 END) AS tagihan_belum,
+               COUNT(DISTINCT t.id_pelanggan) AS total_pelanggan,
+               ROUND(SUM(t.jumlah_meter * tr.tarifperkwh), 0) AS total_bayar
+        FROM tagihan t
+        JOIN pelanggan pl ON pl.id_pelanggan = t.id_pelanggan
+        JOIN tarif tr ON tr.id_tarif = pl.id_tarif
+        GROUP BY t.tahun, t.bulan
+        ORDER BY t.tahun DESC, t.bulan DESC
+        """,
+    )
+
+
+def get_monthly_report(conn, tahun: int, bulan: int) -> Optional[Dict[str, Any]]:
+    rows = fetch_all(
+        conn,
+        """
+        SELECT t.tahun,
+               t.bulan,
+               COUNT(*) AS total_tagihan,
+               SUM(CASE WHEN t.status = 'SUDAH BAYAR' THEN 1 ELSE 0 END) AS tagihan_lunas,
+               SUM(CASE WHEN t.status <> 'SUDAH BAYAR' THEN 1 ELSE 0 END) AS tagihan_belum,
+               COUNT(DISTINCT t.id_pelanggan) AS total_pelanggan,
+               ROUND(SUM(t.jumlah_meter * tr.tarifperkwh), 0) AS total_bayar
+        FROM tagihan t
+        JOIN pelanggan pl ON pl.id_pelanggan = t.id_pelanggan
+        JOIN tarif tr ON tr.id_tarif = pl.id_tarif
+        WHERE t.tahun = %s AND t.bulan = %s
+        GROUP BY t.tahun, t.bulan
+        """,
+        (tahun, bulan),
+    )
+    return rows[0] if rows else None
+
+
+def list_monthly_report_details(conn, tahun: int, bulan: int) -> List[Dict[str, Any]]:
+    return fetch_all(
+        conn,
+        """
+        SELECT pl.nama_pelanggan,
+               pl.nomor_kwh,
+               pl.alamat,
+               p.meter_awal,
+               p.meter_akhir,
+               t.jumlah_meter,
+               tr.tarifperkwh,
+               t.status,
+               ROUND(t.jumlah_meter * tr.tarifperkwh, 0) AS total_bayar
+        FROM tagihan t
+        JOIN pelanggan pl ON pl.id_pelanggan = t.id_pelanggan
+        JOIN tarif tr ON tr.id_tarif = pl.id_tarif
+        LEFT JOIN penggunaan p
+          ON p.id_pelanggan = t.id_pelanggan
+         AND p.bulan = t.bulan
+         AND p.tahun = t.tahun
+        WHERE t.tahun = %s AND t.bulan = %s
+        ORDER BY pl.nama_pelanggan
+        """,
+        (tahun, bulan),
+    )
+
+
+def get_usage_by_customer_period(
+    conn, id_pelanggan: int, bulan: int, tahun: int
+) -> Optional[Dict[str, Any]]:
+    rows = fetch_all(
+        conn,
+        """
+        SELECT meter_awal, meter_akhir
+        FROM penggunaan
+        WHERE id_pelanggan = %s AND bulan = %s AND tahun = %s
+        """,
+        (id_pelanggan, bulan, tahun),
+    )
+    return rows[0] if rows else None
+
+
 
 
 def create_customer(
@@ -41,6 +202,67 @@ def create_customer(
         VALUES (%s, SHA2(%s, 256), %s, %s, %s, %s)
         """,
         (username, password_plain, nomor_kwh, nama_pelanggan, alamat, id_tarif),
+    )
+
+
+def create_admin(
+    conn,
+    username: str,
+    password_plain: str,
+    nama_admin: str,
+    id_level: int,
+) -> int:
+    return execute(
+        conn,
+        """
+        INSERT INTO user (username, password, nama_admin, id_level)
+        VALUES (%s, SHA2(%s, 256), %s, %s)
+        """,
+        (username, password_plain, nama_admin, id_level),
+    )
+
+
+def update_admin(
+    conn,
+    id_user: int,
+    username: str,
+    nama_admin: str,
+    id_level: int,
+    password_plain: Optional[str] = None,
+) -> None:
+    if password_plain:
+        execute(
+            conn,
+            """
+            UPDATE user
+            SET username = %s,
+                password = SHA2(%s, 256),
+                nama_admin = %s,
+                id_level = %s
+            WHERE id_user = %s
+            """,
+            (username, password_plain, nama_admin, id_level, id_user),
+        )
+        return
+
+    execute(
+        conn,
+        """
+        UPDATE user
+        SET username = %s,
+            nama_admin = %s,
+            id_level = %s
+        WHERE id_user = %s
+        """,
+        (username, nama_admin, id_level, id_user),
+    )
+
+
+def delete_admin(conn, id_user: int) -> None:
+    execute(
+        conn,
+        "DELETE FROM user WHERE id_user = %s",
+        (id_user,),
     )
 
 
@@ -68,6 +290,34 @@ def get_usage(conn, id_penggunaan: int) -> Optional[Dict[str, Any]]:
         WHERE id_penggunaan = %s
         """,
         (id_penggunaan,),
+    )
+    return rows[0] if rows else None
+
+
+def get_last_usage_for_customer(conn, id_pelanggan: int) -> Optional[Dict[str, Any]]:
+    rows = fetch_all(
+        conn,
+        """
+        SELECT bulan, tahun, meter_akhir
+        FROM penggunaan
+        WHERE id_pelanggan = %s
+        ORDER BY tahun DESC, bulan DESC
+        LIMIT 1
+        """,
+        (id_pelanggan,),
+    )
+    return rows[0] if rows else None
+
+
+def get_customer(conn, id_pelanggan: int) -> Optional[Dict[str, Any]]:
+    rows = fetch_all(
+        conn,
+        """
+        SELECT id_pelanggan, username, nama_pelanggan, nomor_kwh, alamat, id_tarif
+        FROM pelanggan
+        WHERE id_pelanggan = %s
+        """,
+        (id_pelanggan,),
     )
     return rows[0] if rows else None
 
@@ -112,7 +362,7 @@ def get_bill(conn, id_tagihan: int) -> Optional[Dict[str, Any]]:
         """
         SELECT t.id_tagihan, t.id_pelanggan, t.bulan, t.tahun,
                t.jumlah_meter, t.status,
-               pl.nama_pelanggan, pl.username, pl.nomor_kwh,
+               pl.nama_pelanggan, pl.username, pl.nomor_kwh, pl.alamat,
                tr.tarifperkwh,
                ROUND(t.jumlah_meter * tr.tarifperkwh, 0) AS total_bayar
         FROM tagihan t
