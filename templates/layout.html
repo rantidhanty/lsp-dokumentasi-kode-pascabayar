@@ -11,13 +11,13 @@
   <div class="bg-orb orb-2"></div>
 
   <header class="topbar">
-    <div class="brand">
+    <a class="brand" href="{{ url_for('dashboard') if session.get('user_id') else url_for('index') }}">
       <img class="brand-logo" src="{{ url_for('static', filename='img/logo-lspbsi.png') }}" alt="Logo LSP Pascabayar">
       <div>
         <div class="brand-title">LSP Pascabayar</div>
         <div class="brand-subtitle">Pembayaran listrik profesional</div>
       </div>
-    </div>
+    </a>
     <nav class="nav">
       {% if session.get('user_id') %}
         <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>

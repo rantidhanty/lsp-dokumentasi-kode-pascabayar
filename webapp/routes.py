@@ -121,6 +121,13 @@ def _suggest_from_rows(
 
 
 def register_routes(app: Flask) -> None:
+    @app.after_request
+    def add_no_cache_headers(response):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
+
     @app.context_processor
     def inject_admin_notifications():
         if session.get("role") != "admin":
@@ -136,35 +143,32 @@ def register_routes(app: Flask) -> None:
     def index():
         if session.get("user_id"):
             return redirect(url_for("dashboard"))
-        return redirect(url_for("login"))
+        return render_template("landing.html")
 
     @app.route("/login", methods=["GET", "POST"])
     def login():
         if request.method == "POST":
-            role = request.form.get("role", "pelanggan")
             username = request.form.get("username", "").strip()
             password = request.form.get("password", "")
 
             conn = get_db()
-            user = None
-            if role == "admin":
-                user = login_admin(conn, username, password)
-                if user:
-                    session.clear()
-                    session["user_id"] = int(user["id_user"])
-                    session["username"] = user["username"]
-                    session["name"] = user["nama_admin"]
-                    session["role"] = "admin"
-            else:
-                user = login_pelanggan(conn, username, password)
-                if user:
-                    session.clear()
-                    session["user_id"] = int(user["id_pelanggan"])
-                    session["username"] = user["username"]
-                    session["name"] = user["nama_pelanggan"]
-                    session["role"] = "pelanggan"
+            user_admin = login_admin(conn, username, password)
+            if user_admin:
+                session.clear()
+                session["user_id"] = int(user_admin["id_user"])
+                session["username"] = user_admin["username"]
+                session["name"] = user_admin["nama_admin"]
+                session["role"] = "admin"
+                flash("Login berhasil.", "success")
+                return redirect(url_for("dashboard"))
 
-            if user:
+            user_customer = login_pelanggan(conn, username, password)
+            if user_customer:
+                session.clear()
+                session["user_id"] = int(user_customer["id_pelanggan"])
+                session["username"] = user_customer["username"]
+                session["name"] = user_customer["nama_pelanggan"]
+                session["role"] = "pelanggan"
                 flash("Login berhasil.", "success")
                 return redirect(url_for("dashboard"))
 

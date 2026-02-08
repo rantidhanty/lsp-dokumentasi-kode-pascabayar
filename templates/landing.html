@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<section class="hero">
+  <div class="eyebrow">LSP Pascabayar</div>
+  <h1>Pembayaran listrik pascabayar yang cepat, aman, dan mudah.</h1>
+  <p class="muted">Cek tagihan, lakukan pembayaran, dan simpan bukti transaksi dalam satu portal yang rapi dan tepercaya.</p>
+  <div class="hero-actions">
+    <a class="btn primary" href="{{ url_for('login') }}">Login</a>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Fitur Utama</h2>
+      <p class="muted">Dirancang untuk kenyamanan pelanggan.</p>
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-meta">Tagihan</div>
+      <strong>Informasi Transparan</strong>
+      <div class="muted">Detail periode, jumlah meter, dan total bayar tampil jelas.</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-meta">Pembayaran</div>
+      <strong>Proses Mudah</strong>
+      <div class="muted">Bayar dalam beberapa langkah dan lanjutkan aktivitas Anda.</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-meta">Bukti</div>
+      <strong>Unduh Resmi</strong>
+      <div class="muted">Simpan bukti pembayaran kapan saja saat dibutuhkan.</div>
+    </div>
+  </div>
+</section>
+{% endblock %}

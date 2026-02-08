@@ -53,7 +53,7 @@
           <td><span class="badge {{ 'success' if bill.status == 'SUDAH BAYAR' else 'warning' }}">{{ bill.status }}</span></td>
           <td>
             {% if bill.status != 'SUDAH BAYAR' %}
-            <form method="post" action="{{ url_for('admin_bill_mark_paid', id_tagihan=bill.id_tagihan) }}" class="inline-form">
+            <form method="post" action="{{ url_for('admin_bill_mark_paid', id_tagihan=bill.id_tagihan) }}" class="inline-form" onsubmit="return confirm('Yakin pelanggan sudah membayar?');">
               <button class="btn ghost" type="submit">Tandai Lunas</button>
             </form>
             {% else %}
