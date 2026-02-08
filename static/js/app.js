@@ -244,4 +244,60 @@ document.addEventListener('DOMContentLoaded', () => {
       updateNotifVisibility();
     });
   }
+
+  function setupSearchSuggestions() {
+    document.querySelectorAll('[data-suggest-section]').forEach((input) => {
+      const section = input.getAttribute('data-suggest-section');
+      const listId = input.getAttribute('list');
+      const listEl = listId ? document.getElementById(listId) : null;
+      let timer = null;
+
+      if (!section || !listEl) {
+        return;
+      }
+
+      input.addEventListener('input', () => {
+        if (timer) {
+          clearTimeout(timer);
+        }
+        const query = input.value.trim();
+        if (!query) {
+          listEl.innerHTML = '';
+          return;
+        }
+
+        timer = setTimeout(async () => {
+          try {
+            const params = new URLSearchParams({
+              section,
+              q: query,
+            });
+            const status = input.getAttribute('data-suggest-status');
+            if (status) {
+              params.set('status', status);
+            }
+            const response = await fetch(`/admin/search-suggestions?${params.toString()}`);
+            if (!response.ok) {
+              return;
+            }
+            const data = await response.json();
+            const suggestions = Array.isArray(data.suggestions) ? data.suggestions : [];
+            listEl.innerHTML = suggestions
+              .map((text) => {
+                const safe = String(text)
+                  .replace(/&/g, '&amp;')
+                  .replace(/</g, '&lt;')
+                  .replace(/"/g, '&quot;');
+                return `<option value="${safe}"></option>`;
+              })
+              .join('');
+          } catch (error) {
+            console.error('Search suggestion error:', error);
+          }
+        }, 200);
+      });
+    });
+  }
+
+  setupSearchSuggestions();
 });

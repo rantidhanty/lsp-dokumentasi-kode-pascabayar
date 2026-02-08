@@ -62,6 +62,64 @@ def login_required(role: Optional[str] = None):
     return decorator
 
 
+def _matches_query(value: Optional[object], query: str) -> bool:
+    if value is None:
+        return False
+    return query in str(value).lower()
+
+
+def _row_matches(row: dict, query: str, fields: list, extra_values: Optional[list] = None) -> bool:
+    for field in fields:
+        if _matches_query(row.get(field), query):
+            return True
+    if extra_values:
+        for value in extra_values:
+            if _matches_query(value, query):
+                return True
+    return False
+
+
+def _filter_rows(rows: list, query: str, fields: list, extra_values_fn: Optional[Callable] = None) -> list:
+    if not query:
+        return rows
+    query = query.lower()
+    filtered = []
+    for row in rows:
+        extra_values = extra_values_fn(row) if extra_values_fn else None
+        if _row_matches(row, query, fields, extra_values):
+            filtered.append(row)
+    return filtered
+
+
+def _suggest_from_rows(
+    rows: list,
+    query: str,
+    fields: list,
+    extra_values_fn: Optional[Callable] = None,
+    limit: int = 8,
+) -> list:
+    if not query:
+        return []
+    query = query.lower()
+    suggestions = []
+    seen = set()
+    for row in rows:
+        extra_values = extra_values_fn(row) if extra_values_fn else None
+        candidates = [row.get(field) for field in fields]
+        if extra_values:
+            candidates.extend(extra_values)
+        for value in candidates:
+            if value is None:
+                continue
+            text = str(value)
+            if query in text.lower() and text not in seen:
+                seen.add(text)
+                suggestions.append(text)
+                if len(suggestions) >= limit:
+                    return suggestions
+    return suggestions
+
+
 def register_routes(app: Flask) -> None:
     @app.context_processor
     def inject_admin_notifications():
@@ -145,15 +203,84 @@ def register_routes(app: Flask) -> None:
     @login_required("admin")
     def admin_usages():
         conn = get_db()
-        usages = list_usages(conn)
-        return render_template("admin/usage_list.html", usages=usages)
+        page = request.args.get("page", "1")
+        query = request.args.get("q", "").strip()
+        try:
+            page_num = max(1, int(page))
+        except ValueError:
+            page_num = 1
+        per_page = 5
+        usages_all = list_usages(conn)
+        usages_all = _filter_rows(
+            usages_all,
+            query,
+            [
+                "id_penggunaan",
+                "id_pelanggan",
+                "nama_pelanggan",
+                "username",
+                "bulan",
+                "tahun",
+                "meter_awal",
+                "meter_akhir",
+                "kwh",
+            ],
+            extra_values_fn=lambda row: [f"{row.get('bulan')}/{row.get('tahun')}"],
+        )
+        total_items = len(usages_all)
+        total_pages = max(1, (total_items + per_page - 1) // per_page)
+        page_num = min(page_num, total_pages)
+        start = (page_num - 1) * per_page
+        end = start + per_page
+        usages = usages_all[start:end]
+        return render_template(
+            "admin/usage_list.html",
+            usages=usages,
+            page=page_num,
+            total_pages=total_pages,
+            q=query,
+        )
 
     @app.route("/admin/customers")
     @login_required("admin")
     def admin_customers():
         conn = get_db()
-        customers = list_customers(conn)
-        return render_template("admin/customers.html", customers=customers)
+        page = request.args.get("page", "1")
+        query = request.args.get("q", "").strip()
+        try:
+            page_num = max(1, int(page))
+        except ValueError:
+            page_num = 1
+        per_page = 5
+        customers_all = list_customers(conn)
+        customers_all = _filter_rows(
+            customers_all,
+            query,
+            [
+                "id_pelanggan",
+                "nama_pelanggan",
+                "username",
+                "nomor_kwh",
+                "alamat",
+                "id_tarif",
+                "daya",
+                "tarifperkwh",
+            ],
+            extra_values_fn=lambda row: [f"{row.get('daya')} VA"],
+        )
+        total_items = len(customers_all)
+        total_pages = max(1, (total_items + per_page - 1) // per_page)
+        page_num = min(page_num, total_pages)
+        start = (page_num - 1) * per_page
+        end = start + per_page
+        customers = customers_all[start:end]
+        return render_template(
+            "admin/customers.html",
+            customers=customers,
+            page=page_num,
+            total_pages=total_pages,
+            q=query,
+        )
 
     @app.route("/admin/customers/new", methods=["GET", "POST"])
     @login_required("admin")
@@ -199,6 +326,30 @@ def register_routes(app: Flask) -> None:
     @login_required("admin")
     def admin_admins():
         conn = get_db()
+        page = request.args.get("page", "1")
+        query = request.args.get("q", "").strip()
+        try:
+            page_num = max(1, int(page))
+        except ValueError:
+            page_num = 1
+        per_page = 5
+        admins_all = list_admins(conn)
+        admins_all = _filter_rows(
+            admins_all,
+            query,
+            [
+                "id_user",
+                "username",
+                "nama_admin",
+                "id_level",
+            ],
+        )
+        total_items = len(admins_all)
+        total_pages = max(1, (total_items + per_page - 1) // per_page)
+        page_num = min(page_num, total_pages)
+        start = (page_num - 1) * per_page
+        end = start + per_page
+        admins = admins_all[start:end]
 
         if request.method == "POST":
             username = request.form.get("username", "").strip()
@@ -211,21 +362,36 @@ def register_routes(app: Flask) -> None:
 
             if not all([username, password, nama_admin]) or id_level <= 0:
                 flash("Semua field wajib diisi.", "error")
-                admins = list_admins(conn)
-                return render_template("admin/admins.html", admins=admins)
+                return render_template(
+                    "admin/admins.html",
+                    admins=admins,
+                    page=page_num,
+                    total_pages=total_pages,
+                    q=query,
+                )
 
             try:
                 create_admin(conn, username, password, nama_admin, id_level)
             except Exception as exc:
                 flash(f"Gagal menambah admin: {exc}", "error")
-                admins = list_admins(conn)
-                return render_template("admin/admins.html", admins=admins)
+                return render_template(
+                    "admin/admins.html",
+                    admins=admins,
+                    page=page_num,
+                    total_pages=total_pages,
+                    q=query,
+                )
 
             flash("Admin berhasil ditambahkan.", "success")
             return redirect(url_for("admin_admins"))
 
-        admins = list_admins(conn)
-        return render_template("admin/admins.html", admins=admins)
+        return render_template(
+            "admin/admins.html",
+            admins=admins,
+            page=page_num,
+            total_pages=total_pages,
+            q=query,
+        )
 
     @app.route("/admin/admins/<int:admin_id>/edit", methods=["POST"])
     @login_required("admin")
@@ -554,17 +720,130 @@ def register_routes(app: Flask) -> None:
     def admin_bills():
         conn = get_db()
         status = request.args.get("status")
+        page = request.args.get("page", "1")
+        query = request.args.get("q", "").strip()
+        try:
+            page_num = max(1, int(page))
+        except ValueError:
+            page_num = 1
         status_filter = None
         if status == "unpaid":
             status_filter = "BELUM BAYAR"
         elif status == "paid":
             status_filter = "SUDAH BAYAR"
-        bills = list_bills(conn, status=status_filter)
+        per_page = 5
+        bills_all = list_bills(conn, status=status_filter)
+        bills_all = _filter_rows(
+            bills_all,
+            query,
+            [
+                "id_tagihan",
+                "id_pelanggan",
+                "nama_pelanggan",
+                "username",
+                "nomor_kwh",
+                "bulan",
+                "tahun",
+                "jumlah_meter",
+                "status",
+                "tarifperkwh",
+                "total_bayar",
+            ],
+            extra_values_fn=lambda row: [f"{row.get('bulan')}/{row.get('tahun')}"],
+        )
+        total_items = len(bills_all)
+        total_pages = max(1, (total_items + per_page - 1) // per_page)
+        page_num = min(page_num, total_pages)
+        start = (page_num - 1) * per_page
+        end = start + per_page
+        bills = bills_all[start:end]
         return render_template(
             "admin/bills.html",
             bills=bills,
             status=status,
+            page=page_num,
+            total_pages=total_pages,
+            q=query,
         )
+
+    @app.route("/admin/search-suggestions")
+    @login_required("admin")
+    def admin_search_suggestions():
+        conn = get_db()
+        section = request.args.get("section", "").strip().lower()
+        query = request.args.get("q", "").strip()
+        suggestions = []
+
+        if section == "admins":
+            rows = list_admins(conn)
+            suggestions = _suggest_from_rows(
+                rows,
+                query,
+                ["id_user", "username", "nama_admin", "id_level"],
+            )
+        elif section == "customers":
+            rows = list_customers(conn)
+            suggestions = _suggest_from_rows(
+                rows,
+                query,
+                [
+                    "id_pelanggan",
+                    "nama_pelanggan",
+                    "username",
+                    "nomor_kwh",
+                    "alamat",
+                    "id_tarif",
+                    "daya",
+                    "tarifperkwh",
+                ],
+                extra_values_fn=lambda row: [f"{row.get('daya')} VA"],
+            )
+        elif section == "usages":
+            rows = list_usages(conn)
+            suggestions = _suggest_from_rows(
+                rows,
+                query,
+                [
+                    "id_penggunaan",
+                    "id_pelanggan",
+                    "nama_pelanggan",
+                    "username",
+                    "bulan",
+                    "tahun",
+                    "meter_awal",
+                    "meter_akhir",
+                    "kwh",
+                ],
+                extra_values_fn=lambda row: [f"{row.get('bulan')}/{row.get('tahun')}"],
+            )
+        elif section == "bills":
+            status = request.args.get("status")
+            status_filter = None
+            if status == "unpaid":
+                status_filter = "BELUM BAYAR"
+            elif status == "paid":
+                status_filter = "SUDAH BAYAR"
+            rows = list_bills(conn, status=status_filter)
+            suggestions = _suggest_from_rows(
+                rows,
+                query,
+                [
+                    "id_tagihan",
+                    "id_pelanggan",
+                    "nama_pelanggan",
+                    "username",
+                    "nomor_kwh",
+                    "bulan",
+                    "tahun",
+                    "jumlah_meter",
+                    "status",
+                    "tarifperkwh",
+                    "total_bayar",
+                ],
+                extra_values_fn=lambda row: [f"{row.get('bulan')}/{row.get('tahun')}"],
+            )
+
+        return jsonify({"suggestions": suggestions})
 
     @app.route("/admin/bills/new", methods=["GET", "POST"])
     @login_required("admin")

@@ -6,6 +6,19 @@
     <div>
       <h2>Data Penggunaan</h2>
       <p class="muted">Kelola data penggunaan listrik pelanggan.</p>
+      <form class="filter-row" method="get">
+        <input
+          type="search"
+          name="q"
+          value="{{ q }}"
+          placeholder="Cari penggunaan..."
+          list="suggest-usages"
+          data-suggest-section="usages"
+          autocomplete="off"
+        />
+        <button class="btn ghost" type="submit">Cari</button>
+      </form>
+      <datalist id="suggest-usages"></datalist>
     </div>
     <a class="btn primary" href="{{ url_for('admin_usage_new') }}">Tambah Penggunaan</a>
   </div>
@@ -48,5 +61,16 @@
       </tbody>
     </table>
   </div>
+  {% if total_pages > 1 %}
+    <div class="pagination">
+      {% if page > 1 %}
+        <a class="btn ghost" href="{{ url_for('admin_usages', page=page-1, q=q) }}">Sebelumnya</a>
+      {% endif %}
+      <span class="muted">Halaman {{ page }} dari {{ total_pages }}</span>
+      {% if page < total_pages %}
+        <a class="btn ghost" href="{{ url_for('admin_usages', page=page+1, q=q) }}">Berikutnya</a>
+      {% endif %}
+    </div>
+  {% endif %}
 </section>
 {% endblock %}

@@ -6,6 +6,19 @@
     <div>
       <h2>Kelola Admin</h2>
       <p class="muted">Daftar admin/petugas yang memiliki akses sistem.</p>
+      <form class="filter-row" method="get">
+        <input
+          type="search"
+          name="q"
+          value="{{ q }}"
+          placeholder="Cari admin..."
+          list="suggest-admins"
+          data-suggest-section="admins"
+          autocomplete="off"
+        />
+        <button class="btn ghost" type="submit">Cari</button>
+      </form>
+      <datalist id="suggest-admins"></datalist>
     </div>
     <button class="btn primary" type="button" id="openAdminModal">Tambah Admin</button>
   </div>
@@ -58,6 +71,17 @@
       </tbody>
     </table>
   </div>
+  {% if total_pages > 1 %}
+    <div class="pagination">
+      {% if page > 1 %}
+        <a class="btn ghost" href="{{ url_for('admin_admins', page=page-1, q=q) }}">Sebelumnya</a>
+      {% endif %}
+      <span class="muted">Halaman {{ page }} dari {{ total_pages }}</span>
+      {% if page < total_pages %}
+        <a class="btn ghost" href="{{ url_for('admin_admins', page=page+1, q=q) }}">Berikutnya</a>
+      {% endif %}
+    </div>
+  {% endif %}
 </section>
 
 <div id="adminModal" class="modal">

@@ -6,6 +6,19 @@
     <div>
       <h2>Data Pelanggan</h2>
       <p class="muted">Daftar pelanggan terdaftar pada sistem.</p>
+      <form class="filter-row" method="get">
+        <input
+          type="search"
+          name="q"
+          value="{{ q }}"
+          placeholder="Cari pelanggan..."
+          list="suggest-customers"
+          data-suggest-section="customers"
+          autocomplete="off"
+        />
+        <button class="btn ghost" type="submit">Cari</button>
+      </form>
+      <datalist id="suggest-customers"></datalist>
     </div>
     <a class="btn primary" href="{{ url_for('admin_customer_new') }}">Tambah Pelanggan</a>
   </div>
@@ -48,5 +61,16 @@
       </tbody>
     </table>
   </div>
+  {% if total_pages > 1 %}
+    <div class="pagination">
+      {% if page > 1 %}
+        <a class="btn ghost" href="{{ url_for('admin_customers', page=page-1, q=q) }}">Sebelumnya</a>
+      {% endif %}
+      <span class="muted">Halaman {{ page }} dari {{ total_pages }}</span>
+      {% if page < total_pages %}
+        <a class="btn ghost" href="{{ url_for('admin_customers', page=page+1, q=q) }}">Berikutnya</a>
+      {% endif %}
+    </div>
+  {% endif %}
 </section>
 {% endblock %}

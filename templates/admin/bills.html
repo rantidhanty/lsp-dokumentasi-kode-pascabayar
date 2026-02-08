@@ -6,6 +6,23 @@
     <div>
       <h2>Tagihan Pelanggan</h2>
       <p class="muted">Pantau status tagihan dan pembayaran.</p>
+      <form class="filter-row" method="get">
+        {% if status %}
+          <input type="hidden" name="status" value="{{ status }}">
+        {% endif %}
+        <input
+          type="search"
+          name="q"
+          value="{{ q }}"
+          placeholder="Cari tagihan..."
+          list="suggest-bills"
+          data-suggest-section="bills"
+          {% if status %}data-suggest-status="{{ status }}"{% endif %}
+          autocomplete="off"
+        />
+        <button class="btn ghost" type="submit">Cari</button>
+      </form>
+      <datalist id="suggest-bills"></datalist>
     </div>
     <div class="hero-actions">
       <a class="btn primary" href="{{ url_for('admin_bill_new') }}">Tambah Tagihan</a>
@@ -52,5 +69,16 @@
       </tbody>
     </table>
   </div>
+  {% if total_pages > 1 %}
+    <div class="pagination">
+      {% if page > 1 %}
+        <a class="btn ghost" href="{{ url_for('admin_bills', page=page-1, status=status, q=q) }}">Sebelumnya</a>
+      {% endif %}
+      <span class="muted">Halaman {{ page }} dari {{ total_pages }}</span>
+      {% if page < total_pages %}
+        <a class="btn ghost" href="{{ url_for('admin_bills', page=page+1, status=status, q=q) }}">Berikutnya</a>
+      {% endif %}
+    </div>
+  {% endif %}
 </section>
 {% endblock %}
